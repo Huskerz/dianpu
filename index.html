@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>店铺营销</title>
+  <style>
+    :root { --primary: #2860FA; --primary-light: #E8F0FF; --page-bg: #F5F6F7; --card-bg: #FFFFFF; --text-primary: #333333; --text-secondary: #666666; --text-hint: #999999; --border-color: #E0E0E0; --border-light: #F0F0F0; --status-gray: #F5F5F5; }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Helvetica Neue", sans-serif; background: var(--page-bg); font-size: 14px; padding-bottom: 70px; }
+    .page { max-width: 450px; margin: 0 auto; min-height: 100vh; }
+    .page.hidden { display: none; }
+    .header { position: sticky; top: 0; z-index: 100; background: var(--page-bg); padding: 12px 16px; }
+    .shop-selector { display: flex; align-items: center; gap: 8px; font-size: 17px; font-weight: 600; color: var(--text-primary); margin-bottom: 16px; }
+    .shop-arrow { font-size: 12px; opacity: 0.5; }
+    .empty-card { background: var(--card-bg); border-radius: 12px; padding: 20px 16px; margin-bottom: 12px; position: relative; overflow: hidden; box-shadow: 0 1px 4px rgba(0,0,0,0.04); }
+    .empty-card::before { content: ''; position: absolute; top: -20px; right: -20px; width: 100px; height: 100px; background: linear-gradient(135deg, var(--primary-light) 0%, transparent 100%); border-radius: 50%; }
+    .empty-title { font-size: 20px; font-weight: 700; color: var(--primary); margin-bottom: 8px; position: relative; }
+    .empty-subtitle { font-size: 13px; color: var(--text-hint); margin-bottom: 20px; position: relative; }
+    .empty-actions { display: flex; gap: 12px; position: relative; }
+    .empty-btn { flex: 1; height: 38px; border-radius: 19px; font-size: 14px; cursor: pointer; border: none; font-weight: 500; }
+    .empty-btn.normal { background: #fff; border: 1px solid var(--border-color); color: var(--text-primary); }
+    .empty-btn.primary { background: var(--primary); color: #fff; display: flex; align-items: center; justify-content: center; gap: 6px; }
+    .filter-bar { display: flex; align-items: center; gap: 8px; margin-bottom: 12px; }
+    .filter-dropdown { padding: 8px 12px; background: transparent; border: none; font-size: 14px; color: var(--primary); font-weight: 500; }
+    .search-box { flex: 1; display: flex; align-items: center; gap: 8px; padding: 8px 12px; background: var(--card-bg); border-radius: 18px; border: 1px solid var(--border-color); }
+    .search-input { flex: 1; border: none; background: transparent; font-size: 14px; outline: none; color: var(--text-primary); }
+    .search-input::placeholder { color: var(--text-hint); }
+    .filter-icon { width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; color: var(--text-hint); cursor: pointer; }
+    .activity-card { background: var(--card-bg); border-radius: 12px; padding: 16px; margin-bottom: 12px; box-shadow: 0 1px 4px rgba(0,0,0,0.04); }
+    .activity-id-row { margin-bottom: 8px; }
+    .activity-id-tag { display: inline-block; padding: 2px 6px; background: var(--status-gray); color: var(--text-hint); font-size: 11px; border-radius: 4px; margin-right: 4px; }
+    .activity-id-num { color: var(--text-secondary); font-size: 12px; }
+    .card-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+    .card-left { display: flex; align-items: center; gap: 8px; flex: 1; }
+    .status-tag { padding: 4px 8px; border-radius: 4px; font-size: 12px; font-weight: 500; }
+    .status-tag.active { background: var(--primary); color: #fff; }
+    .status-tag.inactive { background: var(--status-gray); color: var(--text-secondary); }
+    .activity-name { font-size: 16px; font-weight: 600; color: var(--text-primary); }
+    .card-arrow { color: var(--text-hint); font-size: 20px; }
+    .info-list { display: flex; flex-direction: column; gap: 8px; margin-bottom: 16px; }
+    .info-item { display: flex; gap: 8px; font-size: 14px; }
+    .info-label { flex-shrink: 0; color: var(--text-hint); width: 68px; }
+    .info-value { color: var(--text-secondary); }
+    .card-actions { display: flex; gap: 8px; padding-top: 12px; border-top: 1px solid var(--border-light); }
+    .action-btn { flex: 1; height: 34px; background: #fff; border: 1px solid var(--border-color); border-radius: 17px; font-size: 13px; color: var(--text-secondary); cursor: pointer; font-weight: 500; }
+    .action-btn.toggle { border-color: var(--primary); color: var(--primary); }
+    .tab-bar { position: fixed; bottom: 0; left: 50%; transform: translateX(-50%); width: 100%; max-width: 450px; background: var(--card-bg); border-top: 1px solid var(--border-light); display: flex; justify-content: space-around; padding: 8px 0 12px; }
+    .tab-item { display: flex; flex-direction: column; align-items: center; gap: 4px; color: var(--text-hint); font-size: 10px; cursor: pointer; }
+    .tab-item.active { color: var(--primary); }
+    .tab-icon { font-size: 20px; }
+    .navbar { position: sticky; top: 0; z-index: 100; background: var(--card-bg); padding: 12px 16px; box-shadow: 0 1px 4px rgba(0,0,0,0.04); }
+    .nav-top { display: flex; align-items: center; justify-content: center; position: relative; }
+    .nav-title { font-size: 17px; font-weight: 600; color: var(--text-primary); }
+    .nav-back { position: absolute; left: 0; color: var(--text-primary); font-size: 24px; cursor: pointer; }
+    .scroll-content { padding: 12px; }
+    .card { background: var(--card-bg); border-radius: 12px; padding: 16px; margin-bottom: 12px; }
+    .card-header { font-size: 15px; font-weight: 600; color: var(--text-primary); margin-bottom: 12px; }
+    .card-hint { font-size: 12px; color: var(--text-hint); font-weight: 400; }
+    .shop-select { flex: 1; height: 40px; padding: 0 12px; border: 1px solid var(--border-color); border-radius: 8px; font-size: 14px; background: #fff; }
+    .shop-count { font-size: 13px; color: var(--text-hint); margin-left: 12px; }
+    .shop-selector-form { display: flex; align-items: center; }
+    .form-input { width: 100%; height: 40px; padding: 0 12px; border: 1px solid var(--border-color); border-radius: 8px; font-size: 14px; }
+    .form-textarea { width: 100%; min-height: 80px; padding: 10px 12px; border: 1px solid var(--border-color); border-radius: 8px; font-size: 14px; resize: vertical; }
+    .date-range { display: flex; align-items: center; gap: 8px; }
+    .date-input { flex: 1; height: 40px; padding: 0 12px; border: 1px solid var(--border-color); border-radius: 8px; font-size: 14px; text-align: center; }
+    .date-separator { color: var(--text-hint); }
+    .business-group { display: flex; gap: 8px; }
+    .business-btn { flex: 1; height: 40px; background: var(--page-bg); border: 1px solid var(--border-color); border-radius: 8px; font-size: 14px; cursor: pointer; }
+    .business-btn.active { background: var(--primary-light); border-color: var(--primary); color: var(--primary); font-weight: 500; }
+    .member-toggle { width: 100%; height: 44px; background: var(--primary-light); border: 1px solid var(--primary); border-radius: 8px; font-size: 14px; color: var(--primary); font-weight: 500; cursor: pointer; margin-bottom: 12px; }
+    .level-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
+    .level-tag { padding: 10px; background: #fff; border: 1px solid var(--border-color); border-radius: 20px; font-size: 13px; color: var(--text-secondary); cursor: pointer; text-align: center; }
+    .level-tag.active { background: var(--primary); color: #fff; border-color: var(--primary); }
+    .rule-row { display: flex; align-items: center; gap: 8px; margin-bottom: 12px; }
+    .rule-row:last-child { margin-bottom: 0; }
+    .number-input { width: 100px; height: 36px; padding: 0 8px; border: 1px solid var(--border-color); border-radius: 8px; font-size: 14px; text-align: center; }
+    .select-product-btn { width: 100%; height: 44px; background: var(--primary-light); border: none; border-radius: 8px; font-size: 14px; color: var(--primary); font-weight: 500; cursor: pointer; }
+    .gift-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
+    .gift-label { font-size: 14px; color: var(--text-primary); }
+    .gift-btn { height: 36px; padding: 0 16px; background: var(--primary-light); border: none; border-radius: 18px; font-size: 14px; color: var(--primary); cursor: pointer; font-weight: 500; }
+    .radio-group { display: flex; gap: 24px; margin-bottom: 12px; }
+    .radio-item { display: flex; align-items: center; gap: 8px; cursor: pointer; }
+    .radio-item input { display: none; }
+    .radio-dot { width: 16px; height: 16px; border: 2px solid var(--border-color); border-radius: 50%; }
+    .radio-item input:checked + .radio-dot { border-color: var(--primary); }
+    .radio-item input:checked + .radio-dot::after { content: ''; width: 8px; height: 8px; border-radius: 50%; background: var(--primary); }
+    .add-remove-btns { display: flex; gap: 8px; margin-top: 12px; }
+    .icon-btn { width: 36px; height: 36px; border: 1px solid var(--border-color); border-radius: 50%; background: #fff; font-size: 20px; cursor: pointer; }
+    .accordion-header { display: flex; align-items: center; justify-content: space-between; padding-bottom: 12px; border-bottom: 1px solid var(--border-light); cursor: pointer; }
+    .accordion-title { font-size: 14px; font-weight: 600; color: var(--text-primary); }
+    .accordion-hint { font-size: 12px; color: var(--text-hint); font-weight: 400; }
+    .accordion-expand { color: var(--text-hint); font-size: 12px; }
+    .accordion-content { padding-top: 12px; font-size: 13px; line-height: 1.6; display: none; }
+    .accordion-content.show { display: block; }
+    .submit-section { position: fixed; bottom: 70px; left: 50%; transform: translateX(-50%); width: 100%; max-width: 450px; background: var(--card-bg); padding: 12px 16px; border-top: 1px solid var(--border-light); }
+    .submit-btn { width: 100%; height: 48px; border-radius: 24px; background: var(--primary); color: #fff; font-size: 16px; font-weight: 600; border: none; cursor: pointer; }
+    .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.45); z-index: 999; display: none; align-items: flex-end; }
+    .modal-overlay.show { display: flex; }
+    .modal-content { background: #fff; border-radius: 16px 16px 0 0; width: 100%; max-width: 450px; margin: 0 auto; padding: 20px; }
+    .modal-title { font-size: 16px; font-weight: 600; text-align: center; margin-bottom: 16px; }
+    .modal-text { font-size: 14px; color: var(--text-secondary); text-align: center; margin-bottom: 24px; line-height: 1.6; }
+    .modal-buttons { display: flex; gap: 12px; }
+    .modal-btn { flex: 1; height: 44px; border-radius: 12px; font-size: 15px; border: 1px solid var(--border-color); background: #fff; cursor: pointer; }
+    .modal-confirm { background: var(--primary); color: #fff; border: none; }
+    .picker-mask { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.45); z-index: 999; display: none; }
+    .picker-mask.show { display: block; }
+    .bottom-picker { position: fixed; bottom: 0; left: 0; right: 0; background: #fff; border-radius: 16px 16px 0 0; z-index: 1000; transform: translateY(100%); transition: transform 0.3s; max-width: 450px; max-height: 60vh; overflow-y: auto; }
+    .bottom-picker.show { transform: translateY(0); }
+    .picker-header { display: flex; justify-content: space-between; padding: 14px 16px; border-bottom: 1px solid var(--border-light); }
+    .picker-title { font-size: 15px; font-weight: 600; }
+    .picker-cancel, .picker-confirm { color: var(--primary); cursor: pointer; font-weight: 500; }
+    .picker-option { padding: 14px 16px; border-bottom: 1px solid var(--border-light); cursor: pointer; }
+    .picker-option.selected { color: var(--primary); font-weight: 500; }
+    .toast { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: rgba(0,0,0,0.75); color: #fff; padding: 10px 24px; border-radius: 8px; font-size: 14px; z-index: 9999; opacity: 0; transition: opacity 0.3s; pointer-events: none; }
+    .toast.show { opacity: 1; }
+  </style>
+</head>
+<body>
+  <div class="page" id="listPage">
+    <div class="header">
+      <div class="shop-selector">🏠 全部门店 <span class="shop-arrow">⌄</span></div>
+      <div class="empty-card">
+        <div class="empty-title">多类活动！</div>
+        <div class="empty-subtitle">满足门店分场景促销需求</div>
+        <div class="empty-actions">
+          <button class="empty-btn normal" onclick="goToPage('createPage')">手动创建</button>
+          <button class="empty-btn primary" onclick="showToast('智能生成')">🤖 智能生成</button>
+        </div>
+      </div>
+      <div class="filter-bar">
+        <select class="filter-dropdown"><option>全部审批 ▾</option><option>审批中</option><option>已通过</option></select>
+        <div class="search-box"><span>🔍</span><input type="text" class="search-input" placeholder="请输入活动名称"></div>
+        <div class="filter-icon">⋮</div>
+      </div>
+    </div>
+    <div style="padding: 0 12px;">
+      <div class="activity-card">
+        <div class="activity-id-row"><span class="activity-id-tag">ID</span><span class="activity-id-num">11920173705</span></div>
+        <div class="card-top"><div class="card-left"><span class="status-tag active">进行中</span><span class="activity-name">集点活动</span></div><div class="card-arrow">›</div></div>
+        <div class="info-list">
+          <div class="info-item"><span class="info-label">活动类型</span><span class="info-value">集点</span></div>
+          <div class="info-item"><span class="info-label">活动日期</span><span class="info-value">2025-09-28 - 2025-11-28</span></div>
+          <div class="info-item"><span class="info-label">门店</span><span class="info-value">10092-茶百道奶茶 - 勿动邬伟杰的组织 2</span></div>
+          <div class="info-item"><span class="info-label">活动人群</span><span class="info-value">全部顾客</span></div>
+          <div class="info-item"><span class="info-label">创建信息</span><span class="info-value">门店创建 | 2025-09-28 14:26:46</span></div>
+          <div class="info-item"><span class="info-label">审批通过</span><span class="info-value">2025-09-28 14:27:24</span></div>
+        </div>
+        <div class="card-actions">
+          <button class="action-btn" onclick="showToast('已复制')">复制</button>
+          <button class="action-btn" onclick="showStats()">活动统计</button>
+          <button class="action-btn" onclick="showToast('查看审批')">查看审批</button>
+          <button class="action-btn toggle" onclick="showToggleModal('关闭', '确定要关闭此活动吗？关闭后用户将无法参与活动。', this)">关闭</button>
+        </div>
+      </div>
+      <div class="activity-card">
+        <div class="activity-id-row"><span class="activity-id-tag">ID</span><span class="activity-id-num">6038917190789029888</span></div>
+        <div class="card-top"><div class="card-left"><span class="status-tag inactive">已结束</span><span class="activity-name">Test</span></div><div class="card-arrow">›</div></div>
+        <div class="info-list">
+          <div class="info-item"><span class="info-label">活动类型</span><span class="info-value">手动赠券</span></div>
+          <div class="info-item"><span class="info-label">活动日期</span><span class="info-value">2026-03-31 - 2026-03-31</span></div>
+          <div class="info-item"><span class="info-label">门店</span><span class="info-value">店铺营销测试店</span></div>
+          <div class="info-item"><span class="info-label">创建信息</span><span class="info-value">门店创建 | 2026-03-31 17:51:46</span></div>
+          <div class="info-item"><span class="info-label">审批通过</span><span class="info-value">2026-03-31 17:51:54</span></div>
+        </div>
+        <div class="card-actions">
+          <button class="action-btn" onclick="showToast('已复制')">复制</button>
+          <button class="action-btn" onclick="showStats()">活动统计</button>
+          <button class="action-btn" onclick="showToast('查看审批')">查看审批</button>
+          <button class="action-btn" onclick="toggleStatus(this)">启用</button>
+        </div>
+      </div>
+      <div class="activity-card">
+        <div class="activity-id-row"><span class="activity-id-tag">ID</span><span class="activity-id-num">6038917037176832000</span></div>
+        <div class="card-top"><div class="card-left"><span class="status-tag inactive">已结束</span><span class="activity-name">Test</span></div><div class="card-arrow">›</div></div>
+        <div class="info-list">
+          <div class="info-item"><span class="info-label">活动类型</span><span class="info-value">手动赠券</span></div>
+          <div class="info-item"><span class="info-label">活动日期</span><span class="info-value">2026-03-31 - 2026-03-31</span></div>
+          <div class="info-item"><span class="info-label">门店</span><span class="info-value">店铺营销测试店</span></div>
+          <div class="info-item"><span class="info-label">创建信息</span><span class="info-value">门店创建 | 2026-03-31 17:51:15</span></div>
+          <div class="info-item"><span class="info-label">审批通过</span><span class="info-value">2026-03-31 17:51:17</span></div>
+        </div>
+        <div class="card-actions">
+          <button class="action-btn" onclick="showToast('已复制')">复制</button>
+          <button class="action-btn" onclick="showStats()">活动统计</button>
+          <button class="action-btn" onclick="showToast('查看审批')">查看审批</button>
+          <button class="action-btn" onclick="toggleStatus(this)">启用</button>
+        </div>
+      </div>
+    </div>
+    <div class="tab-bar">
+      <div class="tab-item" onclick="showToast('首页')"><div class="tab-icon">🏠</div><span>首页</span></div>
+      <div class="tab-item active" onclick="showToast('营销活动')"><div class="tab-icon">📊</div><span>营销活动</span></div>
+      <div class="tab-item" onclick="showToast('优惠券')"><div class="tab-icon">🎫</div><span>优惠券</span></div>
+    </div>
+  </div>
+  <div class="page hidden" id="createPage">
+    <div class="navbar"><div class="nav-top"><div class="nav-back" onclick="goToPage('listPage')">‹</div><div class="nav-title">新建营销活动</div></div></div>
+    <div class="scroll-content">
+      <div class="card"><div class="card-header">活动门店 <span class="card-hint">每个门店单独对应一个活动</span></div><div class="shop-selector-form"><select class="shop-select"><option>15396-茶百道咖啡测试</option></select><span class="shop-count">共 1 家</span></div></div>
+      <div class="card"><div class="card-header">活动名称 <span class="card-hint">用于活动海报展示</span></div><input type="text" class="form-input" placeholder="请输入活动名称"></div>
+      <div class="card"><div class="card-header">活动日期 <span class="card-hint">仅支持选择一年内</span></div><div class="date-range"><input type="date" class="date-input"><span class="date-separator">至</span><input type="date" class="date-input"></div></div>
+      <div class="card"><div class="card-header">适用业务</div><div class="business-group"><button class="business-btn active" onclick="toggleBusiness(this)">自提</button><button class="business-btn" onclick="toggleBusiness(this)">小程序外卖</button></div></div>
+      <div class="card"><div class="card-header">活动人群</div><button class="member-toggle" onclick="toggleMember(this)">仅会员</button><div class="level-grid"><div class="level-tag active" onclick="toggleLevel(this)">Lv.0 迷路 Panda</div><div class="level-tag active" onclick="toggleLevel(this)">Lv.1 新生 Panda</div><div class="level-tag active" onclick="toggleLevel(this)">Lv.2 好奇 Panda</div><div class="level-tag active" onclick="toggleLevel(this)">Lv.3 饮茶 Panda</div><div class="level-tag active" onclick="toggleLevel(this)">Lv.4 茶艺 Panda</div><div class="level-tag active" onclick="toggleLevel(this)">Lv.5 茶道 Panda</div><div class="level-tag" onclick="toggleLevel(this)">Lv.6 黑金 Panda</div></div></div>
+      <div class="card"><div class="card-header">集点规则</div><div class="rule-row"><span>指定商品 满</span><input type="number" class="number-input" placeholder="0"><span>元集一个点</span></div><div class="rule-row"><span>集点目标数：</span><input type="number" class="number-input" value="10"></div><div class="rule-row"><span>可兑换次数</span><input type="number" class="number-input" value="999"></div></div>
+      <div class="card"><div class="card-header">参与活动商品范围</div><button class="select-product-btn" onclick="showProductPicker()">+ 选择商品</button></div>
+      <div class="card"><div class="card-header">礼品设置</div><div class="gift-row"><span class="gift-label">赠送优惠券</span><button class="gift-btn" onclick="showCouponPicker()">选择优惠券</button></div><div class="gift-row" style="flex-direction:column;align-items:flex-start"><span class="gift-label" style="margin-bottom:12px">优惠券有效期</span><div class="radio-group"><label class="radio-item"><input type="radio" name="validity" id="validityFixed" checked onchange="toggleValidityType()"><span class="radio-dot"></span><span>固定有效期</span></label><label class="radio-item"><input type="radio" name="validity" id="validityRelative" onchange="toggleValidityType()"><span class="radio-dot"></span><span>相对有效期</span></label></div><div class="date-range" id="fixedValidityRange" style="width:100%;margin-top:8px"><input type="date" class="date-input"><span class="date-separator">至</span><input type="date" class="date-input"></div><div class="rule-row" id="relativeValidityDays" style="display:none;margin-top:8px"><span style="white-space:nowrap">有效期</span><input type="number" class="number-input" placeholder="7" style="width:80px"><span>天（从领取日起）</span></div></div><div class="gift-row"><span class="gift-label">活动赠券数量</span><div style="display:flex;align-items:center;gap:8px"><input type="number" class="number-input" placeholder="0" style="width:80px;text-align:left;padding-left:12px"><button class="icon-btn" onclick="adjustNumber(this,1)" style="width:32px;height:32px;font-size:16px">+</button><button class="icon-btn" onclick="adjustNumber(this,-1)" style="width:32px;height:32px;font-size:16px">-</button></div></div><div class="gift-row"><span class="gift-label">单人单次领取数量</span><div style="display:flex;align-items:center;gap:8px"><input type="number" class="number-input" placeholder="1" value="1" style="width:80px;text-align:left;padding-left:12px"><button class="icon-btn" onclick="adjustNumber(this,1)" style="width:32px;height:32px;font-size:16px">+</button><button class="icon-btn" onclick="adjustNumber(this,-1)" style="width:32px;height:32px;font-size:16px">-</button></div></div><div class="add-remove-btns"><button class="icon-btn" onclick="showToast('已添加')" style="width:44px;height:44px;font-size:24px">+</button><button class="icon-btn" onclick="showToast('已删除')" style="width:44px;height:44px;font-size:24px">-</button></div></div>
+      <div class="card"><div class="accordion-header" onclick="toggleAccordion()"><div class="accordion-title">活动说明 <span class="accordion-hint">用于活动海报和小程序端展示</span></div><span class="accordion-expand" id="accordionExpand">展开 ∨</span></div><div class="accordion-content" id="accordionContent">此活动为点单渠道的活动，活动期间会员在点单小程序可参与优惠，本活动不与其他优惠活动同享。<br><br>1、活动时间：X 年 X 月 X 日至 X 年 X 月 X 日；<br>2、活动门店：仅限指定门店；<br>3、活动规则：指定商品满 N 元集 1 个点，集满指定点数可兑换优惠券。</div></div>
+      <div class="card"><div class="card-header">申请原因</div><textarea class="form-textarea" placeholder="请输入申请原因"></textarea></div>
+    </div>
+    <div class="submit-section"><button class="submit-btn" onclick="showSubmitModal()">提交</button></div>
+  </div>
+  <div class="modal-overlay" id="modal"><div class="modal-content"><div class="modal-title" id="modalTitle">提示</div><div class="modal-text" id="modalText">内容</div><div class="modal-buttons"><button class="modal-btn" onclick="hideModal()">取消</button><button class="modal-btn modal-confirm" onclick="confirmModal()">确认</button></div></div></div>
+  <div class="picker-mask" id="productMask" onclick="hideProductPicker()"></div>
+  <div class="bottom-picker" id="productPicker"><div class="picker-header"><span class="picker-cancel" onclick="hideProductPicker()">取消</span><span class="picker-title">选择商品</span><span class="picker-confirm" onclick="confirmProduct()">确定</span></div><div class="picker-option" onclick="togglePickerOption(this)">招牌奶茶</div><div class="picker-option" onclick="togglePickerOption(this)">水果茶</div><div class="picker-option" onclick="togglePickerOption(this)">咖啡拿铁</div></div>
+  <div class="picker-mask" id="couponMask" onclick="hideCouponPicker()"></div>
+  <div class="bottom-picker" id="couponPicker"><div class="picker-header"><span class="picker-cancel" onclick="hideCouponPicker()">取消</span><span class="picker-title">选择优惠券</span><span class="picker-confirm" onclick="confirmCoupon()">确定</span></div><div class="picker-option" onclick="selectCoupon(this)">满 50 减 10 元代金券</div><div class="picker-option" onclick="selectCoupon(this)">满 100 减 20 元代金券</div><div class="picker-option" onclick="selectCoupon(this)">20 元无门槛券</div></div>
+  <div class="toast" id="toast"></div>
+  <script>
+    let toggleCallback = null;
+    function goToPage(id){document.querySelectorAll('.page').forEach(p=>p.classList.add('hidden'));document.getElementById(id).classList.remove('hidden');}
+    function showToast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2000);}
+    function toggleBusiness(btn){btn.classList.toggle('active');}
+    function toggleMember(btn){btn.classList.toggle('active');btn.textContent=btn.classList.contains('active')?'仅会员':'全部顾客';}
+    function toggleLevel(tag){tag.classList.toggle('active');}
+    function toggleValidityType(){const isFixed=document.getElementById('validityFixed').checked;document.getElementById('fixedValidityRange').style.display=isFixed?'flex':'none';document.getElementById('relativeValidityDays').style.display=isFixed?'none':'flex';}
+    function adjustNumber(btn,delta){const input=btn.previousElementSibling;let val=parseInt(input.value)||0;val+=delta;if(val<0)val=0;input.value=val;}
+    function toggleAccordion(){const c=document.getElementById('accordionContent');const e=document.getElementById('accordionExpand');c.classList.toggle('show');e.textContent=c.classList.contains('show')?'收起 ∧':'展开 ∨';}
+    function showStats(){document.getElementById('modalTitle').textContent='活动统计';document.getElementById('modalText').innerHTML='<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px"><div style="background:var(--page-bg);border-radius:8px;padding:16px;text-align:center"><div style="font-size:24px;font-weight:700;color:var(--primary)">1,258</div><div style="font-size:12px;color:var(--text-hint)">参与人数</div></div><div style="background:var(--page-bg);border-radius:8px;padding:16px;text-align:center"><div style="font-size:24px;font-weight:700;color:var(--primary)">3,847</div><div style="font-size:12px;color:var(--text-hint)">集点次数</div></div><div style="background:var(--page-bg);border-radius:8px;padding:16px;text-align:center"><div style="font-size:24px;font-weight:700;color:var(--primary)">428</div><div style="font-size:12px;color:var(--text-hint)">兑换次数</div></div><div style="background:var(--page-bg);border-radius:8px;padding:16px;text-align:center"><div style="font-size:24px;font-weight:700;color:var(--primary)">¥8,560</div><div style="font-size:12px;color:var(--text-hint)">带动 GMV</div></div></div>';document.getElementById('modal').classList.add('show');}
+    function showSubmitModal(){document.getElementById('modalTitle').textContent='提交审批';document.getElementById('modalText').textContent='提交后将进入审批流程，审批通过后活动将创建成功。';document.getElementById('modal').classList.add('show');}
+    function hideModal(){document.getElementById('modal').classList.remove('show');}
+    function confirmModal(){hideModal();if(toggleCallback){toggleCallback();toggleCallback=null;}else{showToast('已提交审批');setTimeout(()=>goToPage('listPage'),1000);}}
+    function showToggleModal(title,text,btn){toggleCallback=function(){btn.textContent=btn.textContent==='关闭'?'启用':'关闭';btn.classList.toggle('toggle');const card=btn.closest('.activity-card');const statusTag=card.querySelector('.status-tag');if(btn.textContent==='启用'){statusTag.classList.remove('active');statusTag.classList.add('inactive');statusTag.textContent='已关闭';showToast('活动已关闭');}else{statusTag.classList.remove('inactive');statusTag.classList.add('active');statusTag.textContent='进行中';showToast('活动已启用');}};document.getElementById('modalTitle').textContent=title;document.getElementById('modalText').textContent=text;document.getElementById('modal').classList.add('show');}
+    function toggleStatus(btn){const card=btn.closest('.activity-card');const statusTag=card.querySelector('.status-tag');if(btn.textContent==='启用'){statusTag.classList.remove('inactive');statusTag.classList.add('active');statusTag.textContent='进行中';btn.textContent='关闭';btn.classList.add('toggle');showToast('活动已启用');}else{showToggleModal('关闭','确定要关闭此活动吗？关闭后用户将无法参与活动。',btn);}}
+    function showProductPicker(){document.getElementById('productMask').classList.add('show');document.getElementById('productPicker').classList.add('show');}
+    function hideProductPicker(){document.getElementById('productMask').classList.remove('show');document.getElementById('productPicker').classList.remove('show');}
+    function togglePickerOption(opt){opt.classList.toggle('selected');}
+    function confirmProduct(){const count=document.querySelectorAll('#productPicker .selected').length;hideProductPicker();showToast('已选择 '+count+' 个商品');}
+    function showCouponPicker(){document.getElementById('couponMask').classList.add('show');document.getElementById('couponPicker').classList.add('show');}
+    function hideCouponPicker(){document.getElementById('couponMask').classList.remove('show');document.getElementById('couponPicker').classList.remove('show');}
+    function selectCoupon(opt){document.querySelectorAll('#couponPicker .picker-option').forEach(o=>o.classList.remove('selected'));opt.classList.add('selected');}
+    function confirmCoupon(){const sel=document.querySelector('#couponPicker .selected');if(sel){showToast('已选择：'+sel.textContent);}hideCouponPicker();}
+  </script>
+</body>
+</html>
