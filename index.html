@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>店铺营销活动列表</title>
+  <style>
+    :root { --primary: #2860FA; --primary-light: #E8F0FF; --page-bg: #F5F6F7; --card-bg: #FFFFFF; --text-primary: #333333; --text-secondary: #666666; --text-hint: #999999; --border-color: #E0E0E0; --border-light: #F0F0F0; --status-gray: #F5F5F5; }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Helvetica Neue", sans-serif; background: var(--page-bg); font-size: 14px; }
+    .page { max-width: 450px; margin: 0 auto; min-height: 100vh; }
+    .header { padding: 12px 16px; }
+    .shop-selector { display: flex; align-items: center; gap: 8px; font-size: 17px; font-weight: 600; color: var(--text-primary); margin-bottom: 16px; }
+    .shop-arrow { font-size: 12px; opacity: 0.5; }
+    .empty-card { background: var(--card-bg); border-radius: 12px; padding: 20px 16px; margin-bottom: 12px; position: relative; overflow: hidden; box-shadow: 0 1px 4px rgba(0,0,0,0.04); }
+    .empty-card::before { content: ''; position: absolute; top: -20px; right: -20px; width: 100px; height: 100px; background: linear-gradient(135deg, var(--primary-light) 0%, transparent 100%); border-radius: 50%; }
+    .empty-title { font-size: 20px; font-weight: 700; color: var(--primary); margin-bottom: 8px; position: relative; }
+    .empty-subtitle { font-size: 13px; color: var(--text-hint); margin-bottom: 20px; position: relative; }
+    .empty-actions { display: flex; gap: 12px; position: relative; }
+    .empty-btn { flex: 1; height: 38px; border-radius: 19px; font-size: 14px; cursor: pointer; border: none; font-weight: 500; }
+    .empty-btn.normal { background: #fff; border: 1px solid var(--border-color); color: var(--text-primary); }
+    .empty-btn.primary { background: var(--primary); color: #fff; display: flex; align-items: center; justify-content: center; gap: 6px; }
+    .filter-bar { display: flex; align-items: center; gap: 8px; margin-bottom: 12px; }
+    .filter-dropdown { padding: 8px 12px; background: transparent; border: none; font-size: 14px; color: var(--primary); font-weight: 500; }
+    .search-box { flex: 1; display: flex; align-items: center; gap: 8px; padding: 8px 12px; background: var(--card-bg); border-radius: 18px; border: 1px solid var(--border-color); }
+    .search-input { flex: 1; border: none; background: transparent; font-size: 14px; outline: none; color: var(--text-primary); }
+    .search-input::placeholder { color: var(--text-hint); }
+    .filter-icon { width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; color: var(--text-hint); cursor: pointer; }
+    .activity-card { background: var(--card-bg); border-radius: 12px; padding: 16px; margin-bottom: 12px; box-shadow: 0 1px 4px rgba(0,0,0,0.04); }
+    .activity-id-row { margin-bottom: 8px; }
+    .activity-id-tag { display: inline-block; padding: 2px 6px; background: var(--status-gray); color: var(--text-hint); font-size: 11px; border-radius: 4px; margin-right: 4px; }
+    .activity-id-num { color: var(--text-secondary); font-size: 12px; }
+    .card-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+    .card-left { display: flex; align-items: center; gap: 8px; flex: 1; }
+    .status-tag { padding: 4px 8px; border-radius: 4px; font-size: 12px; font-weight: 500; }
+    .status-tag.active { background: var(--primary); color: #fff; }
+    .status-tag.inactive { background: var(--status-gray); color: var(--text-secondary); }
+    .activity-name { font-size: 16px; font-weight: 600; color: var(--text-primary); }
+    .card-arrow { color: var(--text-hint); font-size: 20px; }
+    .info-list { display: flex; flex-direction: column; gap: 8px; margin-bottom: 16px; }
+    .info-item { display: flex; gap: 8px; font-size: 14px; }
+    .info-label { flex-shrink: 0; color: var(--text-hint); width: 68px; }
+    .info-value { color: var(--text-secondary); }
+    .card-actions { display: flex; gap: 8px; padding-top: 12px; border-top: 1px solid var(--border-light); }
+    .action-btn { flex: 1; height: 34px; background: #fff; border: 1px solid var(--border-color); border-radius: 17px; font-size: 13px; color: var(--text-secondary); cursor: pointer; font-weight: 500; }
+    .action-btn.toggle { border-color: var(--primary); color: var(--primary); }
+    .tab-bar { position: fixed; bottom: 0; left: 50%; transform: translateX(-50%); width: 100%; max-width: 450px; background: var(--card-bg); border-top: 1px solid var(--border-light); display: flex; justify-content: space-around; padding: 8px 0 12px; }
+    .tab-item { display: flex; flex-direction: column; align-items: center; gap: 4px; color: var(--text-hint); font-size: 10px; cursor: pointer; }
+    .tab-item.active { color: var(--primary); }
+    .tab-icon { font-size: 20px; }
+    .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.45); z-index: 999; display: none; align-items: flex-end; }
+    .modal-overlay.show { display: flex; }
+    .modal-content { background: #fff; border-radius: 16px 16px 0 0; width: 100%; max-width: 450px; margin: 0 auto; padding: 20px; }
+    .modal-title { font-size: 16px; font-weight: 600; text-align: center; margin-bottom: 16px; }
+    .modal-text { font-size: 14px; color: var(--text-secondary); text-align: center; margin-bottom: 24px; line-height: 1.6; }
+    .modal-buttons { display: flex; gap: 12px; }
+    .modal-btn { flex: 1; height: 44px; border-radius: 12px; font-size: 15px; border: 1px solid var(--border-color); background: #fff; cursor: pointer; }
+    .modal-confirm { background: var(--primary); color: #fff; border: none; }
+    .activity-picker-mask { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.45); z-index: 998; display: none; }
+    .activity-picker-mask.show { display: block; }
+    .activity-picker { position: fixed; bottom: 0; left: 0; right: 0; background: #fff; border-radius: 16px 16px 0 0; z-index: 999; transform: translateY(100%); transition: transform 0.3s ease-out; max-width: 450px; margin: 0 auto; display: none; }
+    .activity-picker.show { display: block; transform: translateY(0); }
+    .picker-header { display: flex; align-items: center; justify-content: space-between; padding: 16px; border-bottom: 1px solid var(--border-light); }
+    .picker-title { font-size: 16px; font-weight: 600; color: var(--text-primary); }
+    .picker-close { width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; color: var(--text-hint); cursor: pointer; font-size: 20px; }
+    .activity-list { padding: 12px 16px 20px; max-height: 60vh; overflow-y: auto; }
+    .activity-option { display: flex; align-items: center; padding: 14px 16px; margin-bottom: 8px; background: var(--page-bg); border-radius: 12px; cursor: pointer; transition: background 0.2s; }
+    .activity-option:hover { background: var(--primary-light); }
+    .activity-option:last-child { margin-bottom: 0; }
+    .activity-icon { width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; background: #FF9500; border-radius: 10px; font-size: 20px; margin-right: 12px; flex-shrink: 0; }
+    .activity-name { font-size: 14px; font-weight: 500; color: var(--text-primary); flex: 1; }
+    .toast { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: rgba(0,0,0,0.75); color: #fff; padding: 10px 24px; border-radius: 8px; font-size: 14px; z-index: 9999; opacity: 0; transition: opacity 0.3s; pointer-events: none; }
+    .toast.show { opacity: 1; }
+  </style>
+</head>
+<body>
+  <div class="page" id="listPage">
+    <div class="header">
+      <div class="shop-selector">🏠 全部门店 <span class="shop-arrow">⌄</span></div>
+      <div class="empty-card">
+        <div class="empty-title">多类活动！</div>
+        <div class="empty-subtitle">满足门店分场景促销需求</div>
+        <div class="empty-actions">
+          <button class="empty-btn normal" onclick="showActivityPicker()">手动创建</button>
+          <button class="empty-btn primary" onclick="showToast('智能生成')">🤖 智能生成</button>
+        </div>
+      </div>
+      <div class="filter-bar">
+        <select class="filter-dropdown"><option>全部审批 ▾</option><option>审批中</option><option>已通过</option></select>
+        <div class="search-box"><span>🔍</span><input type="text" class="search-input" placeholder="请输入活动名称"></div>
+        <div class="filter-icon">⋮</div>
+      </div>
+    </div>
+    <div style="padding: 0 12px;">
+      <div class="activity-card">
+        <div class="activity-id-row"><span class="activity-id-tag">ID</span><span class="activity-id-num">11920173705</span></div>
+        <div class="card-top"><div class="card-left"><span class="status-tag active">进行中</span><span class="activity-name">集点活动</span></div><div class="card-arrow">›</div></div>
+        <div class="info-list">
+          <div class="info-item"><span class="info-label">活动类型</span><span class="info-value">集点</span></div>
+          <div class="info-item"><span class="info-label">活动日期</span><span class="info-value">2025-09-28 - 2025-11-28</span></div>
+          <div class="info-item"><span class="info-label">门店</span><span class="info-value">10092-茶百道奶茶 - 勿动邬伟杰的组织 2</span></div>
+          <div class="info-item"><span class="info-label">活动人群</span><span class="info-value">全部顾客</span></div>
+          <div class="info-item"><span class="info-label">创建信息</span><span class="info-value">门店创建 | 2025-09-28 14:26:46</span></div>
+          <div class="info-item"><span class="info-label">审批通过</span><span class="info-value">2025-09-28 14:27:24</span></div>
+        </div>
+        <div class="card-actions">
+          <button class="action-btn" onclick="showToast('已复制')">复制</button>
+          <button class="action-btn" onclick="showStats()">活动统计</button>
+          <button class="action-btn" onclick="showToast('查看审批')">查看审批</button>
+          <button class="action-btn toggle" onclick="showToggleModal('关闭', '确定要关闭此活动吗？关闭后用户将无法参与活动。', this)">关闭</button>
+        </div>
+      </div>
+      <div class="activity-card">
+        <div class="activity-id-row"><span class="activity-id-tag">ID</span><span class="activity-id-num">6038917190789029888</span></div>
+        <div class="card-top"><div class="card-left"><span class="status-tag inactive">已结束</span><span class="activity-name">Test</span></div><div class="card-arrow">›</div></div>
+        <div class="info-list">
+          <div class="info-item"><span class="info-label">活动类型</span><span class="info-value">手动赠券</span></div>
+          <div class="info-item"><span class="info-label">活动日期</span><span class="info-value">2026-03-31 - 2026-03-31</span></div>
+          <div class="info-item"><span class="info-label">门店</span><span class="info-value">店铺营销测试店</span></div>
+          <div class="info-item"><span class="info-label">创建信息</span><span class="info-value">门店创建 | 2026-03-31 17:51:46</span></div>
+          <div class="info-item"><span class="info-label">审批通过</span><span class="info-value">2026-03-31 17:51:54</span></div>
+        </div>
+        <div class="card-actions">
+          <button class="action-btn" onclick="showToast('已复制')">复制</button>
+          <button class="action-btn" onclick="showStats()">活动统计</button>
+          <button class="action-btn" onclick="showToast('查看审批')">查看审批</button>
+          <button class="action-btn" onclick="toggleStatus(this)">启用</button>
+        </div>
+      </div>
+      <div class="activity-card">
+        <div class="activity-id-row"><span class="activity-id-tag">ID</span><span class="activity-id-num">6038917037176832000</span></div>
+        <div class="card-top"><div class="card-left"><span class="status-tag inactive">已结束</span><span class="activity-name">Test</span></div><div class="card-arrow">›</div></div>
+        <div class="info-list">
+          <div class="info-item"><span class="info-label">活动类型</span><span class="info-value">手动赠券</span></div>
+          <div class="info-item"><span class="info-label">活动日期</span><span class="info-value">2026-03-31 - 2026-03-31</span></div>
+          <div class="info-item"><span class="info-label">门店</span><span class="info-value">店铺营销测试店</span></div>
+          <div class="info-item"><span class="info-label">创建信息</span><span class="info-value">门店创建 | 2026-03-31 17:51:15</span></div>
+          <div class="info-item"><span class="info-label">审批通过</span><span class="info-value">2026-03-31 17:51:17</span></div>
+        </div>
+        <div class="card-actions">
+          <button class="action-btn" onclick="showToast('已复制')">复制</button>
+          <button class="action-btn" onclick="showStats()">活动统计</button>
+          <button class="action-btn" onclick="showToast('查看审批')">查看审批</button>
+          <button class="action-btn" onclick="toggleStatus(this)">启用</button>
+        </div>
+      </div>
+    </div>
+    <div class="tab-bar">
+      <div class="tab-item" onclick="showToast('首页')"><div class="tab-icon">🏠</div><span>首页</span></div>
+      <div class="tab-item active" onclick="showToast('营销活动')"><div class="tab-icon">📊</div><span>营销活动</span></div>
+      <div class="tab-item" onclick="showToast('优惠券')"><div class="tab-icon">🎫</div><span>优惠券</span></div>
+    </div>
+  </div>
+  <div class="activity-picker-mask" id="activityMask" onclick="hideActivityPicker()"></div>
+  <div class="activity-picker" id="activityPicker">
+    <div class="picker-header">
+      <span class="picker-title">选择营销活动</span>
+      <span class="picker-close" onclick="hideActivityPicker()">✕</span>
+    </div>
+    <div class="activity-list">
+      <div class="activity-option" onclick="showToast('暂未开放')">
+        <div class="activity-icon">🎁</div>
+        <div class="activity-name">买一赠一</div>
+      </div>
+      <div class="activity-option" onclick="showToast('暂未开放')">
+        <div class="activity-icon">🥤</div>
+        <div class="activity-name">第二杯半价</div>
+      </div>
+      <div class="activity-option" onclick="showToast('暂未开放')">
+        <div class="activity-icon">💰</div>
+        <div class="activity-name">满减</div>
+      </div>
+      <div class="activity-option" onclick="showToast('暂未开放')">
+        <div class="activity-icon">🏷️</div>
+        <div class="activity-name">折扣</div>
+      </div>
+      <div class="activity-option" onclick="showToast('暂未开放')">
+        <div class="activity-icon">⚡</div>
+        <div class="activity-name">特价</div>
+      </div>
+      <div class="activity-option" onclick="showToast('暂未开放')">
+        <div class="activity-icon">🎫</div>
+        <div class="activity-name">免费领券</div>
+      </div>
+      <div class="activity-option" onclick="showToast('暂未开放')">
+        <div class="activity-icon">✋</div>
+        <div class="activity-name">手动赠券</div>
+      </div>
+      <div class="activity-option" onclick="goToCreatePage()">
+        <div class="activity-icon">📍</div>
+        <div class="activity-name">集点活动</div>
+      </div>
+    </div>
+  </div>
+  <div class="modal-overlay" id="modal"><div class="modal-content"><div class="modal-title" id="modalTitle">提示</div><div class="modal-text" id="modalText">内容</div><div class="modal-buttons"><button class="modal-btn" onclick="hideModal()">取消</button><button class="modal-btn modal-confirm" onclick="confirmModal()">确认</button></div></div></div>
+  <div class="toast" id="toast"></div>
+  <script>
+    let toggleCallback = null;
+    function showToast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2000);}
+    function showActivityPicker(){document.getElementById('activityMask').classList.add('show');document.getElementById('activityPicker').classList.add('show');}
+    function hideActivityPicker(){document.getElementById('activityMask').classList.remove('show');document.getElementById('activityPicker').classList.remove('show');}
+    function goToCreatePage(){hideActivityPicker();window.location.href='create.html';}
+    function showStats(){document.getElementById('modalTitle').textContent='活动统计';document.getElementById('modalText').innerHTML='<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px"><div style="background:var(--page-bg);border-radius:8px;padding:16px;text-align:center"><div style="font-size:24px;font-weight:700;color:var(--primary)">1,258</div><div style="font-size:12px;color:var(--text-hint)">参与人数</div></div><div style="background:var(--page-bg);border-radius:8px;padding:16px;text-align:center"><div style="font-size:24px;font-weight:700;color:var(--primary)">3,847</div><div style="font-size:12px;color:var(--text-hint)">集点次数</div></div><div style="background:var(--page-bg);border-radius:8px;padding:16px;text-align:center"><div style="font-size:24px;font-weight:700;color:var(--primary)">428</div><div style="font-size:12px;color:var(--text-hint)">兑换次数</div></div><div style="background:var(--page-bg);border-radius:8px;padding:16px;text-align:center"><div style="font-size:24px;font-weight:700;color:var(--primary)">¥8,560</div><div style="font-size:12px;color:var(--text-hint)">带动 GMV</div></div></div>';document.getElementById('modal').classList.add('show');}
+    function hideModal(){document.getElementById('modal').classList.remove('show');}
+    function confirmModal(){hideModal();if(toggleCallback){toggleCallback();toggleCallback=null;}else{showToast('已提交审批');}}
+    function showToggleModal(title,text,btn){toggleCallback=function(){btn.textContent=btn.textContent==='关闭'?'启用':'关闭';btn.classList.toggle('toggle');const card=btn.closest('.activity-card');const statusTag=card.querySelector('.status-tag');if(btn.textContent==='启用'){statusTag.classList.remove('active');statusTag.classList.add('inactive');statusTag.textContent='已关闭';showToast('活动已关闭');}else{statusTag.classList.remove('inactive');statusTag.classList.add('active');statusTag.textContent='进行中';showToast('活动已启用');}};document.getElementById('modalTitle').textContent=title;document.getElementById('modalText').textContent=text;document.getElementById('modal').classList.add('show');}
+    function toggleStatus(btn){const card=btn.closest('.activity-card');const statusTag=card.querySelector('.status-tag');if(btn.textContent==='启用'){statusTag.classList.remove('inactive');statusTag.classList.add('active');statusTag.textContent='进行中';btn.textContent='关闭';btn.classList.add('toggle');showToast('活动已启用');}else{showToggleModal('关闭','确定要关闭此活动吗？关闭后用户将无法参与活动。',btn);}}
+  </script>
+</body>
+</html>
