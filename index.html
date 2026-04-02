@@ -64,11 +64,11 @@
     .picker-title { font-size: 16px; font-weight: 600; color: var(--text-primary); }
     .picker-close { width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; color: var(--text-hint); cursor: pointer; font-size: 20px; }
     .activity-list { padding: 12px 16px 20px; max-height: 60vh; overflow-y: auto; }
-    .activity-option { display: flex; align-items: center; padding: 14px 16px; margin-bottom: 8px; background: var(--page-bg); border-radius: 12px; cursor: pointer; transition: background 0.2s; }
+    .activity-options { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
+    .activity-option { display: flex; align-items: center; padding: 16px; background: var(--page-bg); border-radius: 12px; cursor: pointer; transition: background 0.2s; }
     .activity-option:hover { background: var(--primary-light); }
-    .activity-option:last-child { margin-bottom: 0; }
-    .activity-icon { width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; background: #FF9500; border-radius: 10px; font-size: 20px; margin-right: 12px; flex-shrink: 0; }
-    .activity-name { font-size: 14px; font-weight: 500; color: var(--text-primary); flex: 1; }
+    .activity-icon { width: 48px; height: 48px; display: flex; align-items: center; justify-content: center; background: #FF9500; border-radius: 12px; font-size: 24px; margin-right: 12px; flex-shrink: 0; }
+    .activity-name { font-size: 14px; font-weight: 500; color: var(--text-primary); text-align: left; }
     .toast { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: rgba(0,0,0,0.75); color: #fff; padding: 10px 24px; border-radius: 8px; font-size: 14px; z-index: 9999; opacity: 0; transition: opacity 0.3s; pointer-events: none; }
     .toast.show { opacity: 1; }
   </style>
@@ -158,37 +158,39 @@
       <span class="picker-close" onclick="hideActivityPicker()">✕</span>
     </div>
     <div class="activity-list">
-      <div class="activity-option" onclick="showToast('暂未开放')">
-        <div class="activity-icon">🎁</div>
-        <div class="activity-name">买一赠一</div>
-      </div>
-      <div class="activity-option" onclick="showToast('暂未开放')">
-        <div class="activity-icon">🥤</div>
-        <div class="activity-name">第二杯半价</div>
-      </div>
-      <div class="activity-option" onclick="showToast('暂未开放')">
-        <div class="activity-icon">💰</div>
-        <div class="activity-name">满减</div>
-      </div>
-      <div class="activity-option" onclick="showToast('暂未开放')">
-        <div class="activity-icon">🏷️</div>
-        <div class="activity-name">折扣</div>
-      </div>
-      <div class="activity-option" onclick="showToast('暂未开放')">
-        <div class="activity-icon">⚡</div>
-        <div class="activity-name">特价</div>
-      </div>
-      <div class="activity-option" onclick="showToast('暂未开放')">
-        <div class="activity-icon">🎫</div>
-        <div class="activity-name">免费领券</div>
-      </div>
-      <div class="activity-option" onclick="showToast('暂未开放')">
-        <div class="activity-icon">✋</div>
-        <div class="activity-name">手动赠券</div>
-      </div>
-      <div class="activity-option" onclick="goToCreatePage()">
-        <div class="activity-icon">📍</div>
-        <div class="activity-name">集点活动</div>
+      <div class="activity-options">
+        <div class="activity-option" onclick="showToast('暂未开放')">
+          <div class="activity-icon">🎁</div>
+          <div class="activity-name">买一赠一</div>
+        </div>
+        <div class="activity-option" onclick="showToast('暂未开放')">
+          <div class="activity-icon">🥤</div>
+          <div class="activity-name">第二杯半价</div>
+        </div>
+        <div class="activity-option" onclick="showToast('暂未开放')">
+          <div class="activity-icon">💰</div>
+          <div class="activity-name">满减</div>
+        </div>
+        <div class="activity-option" onclick="showToast('暂未开放')">
+          <div class="activity-icon">🏷️</div>
+          <div class="activity-name">折扣</div>
+        </div>
+        <div class="activity-option" onclick="showToast('暂未开放')">
+          <div class="activity-icon">⚡</div>
+          <div class="activity-name">特价</div>
+        </div>
+        <div class="activity-option" onclick="showToast('暂未开放')">
+          <div class="activity-icon">🎫</div>
+          <div class="activity-name">免费领券</div>
+        </div>
+        <div class="activity-option" onclick="showToast('暂未开放')">
+          <div class="activity-icon">✋</div>
+          <div class="activity-name">手动赠券</div>
+        </div>
+        <div class="activity-option" onclick="goToCreatePage()">
+          <div class="activity-icon">📍</div>
+          <div class="activity-name">集点活动</div>
+        </div>
       </div>
     </div>
   </div>
