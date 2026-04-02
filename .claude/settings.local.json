@@ -4,7 +4,18 @@
       "Bash(git remote:*)",
       "Bash(git push:*)",
       "Bash(git add:*)",
-      "Bash(git commit:*)"
+      "Bash(git commit:*)",
+      "Bash(tar:*)",
+      "Bash(unzip:*)",
+      "WebFetch(domain:github.com)",
+      "Bash(curl:*)",
+      "Bash(mkdir:*)",
+      "Bash(wget https://github.com/Sebastilan/clipboard-img2file/releases/download/v1.1.0/clipboard-img2file.ps1 -O clipboard-img2file.ps1)",
+      "Bash(powershell:*)",
+      "Bash(cmd.exe:*)",
+      "Bash(powershell.exe:*)",
+      "Bash(git hash-object:*)",
+      "Bash(git update-index:*)"
     ]
   }
 }
