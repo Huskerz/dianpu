@@ -341,6 +341,7 @@
   <!-- Toast -->
   <div class="toast" id="toast"></div>
   
+  <div id="permanent-notes-data" style="display:none;"></div>
   <script>
     // PRD 链接
     const PRD_URL = 'https://swn7zpxv453.feishu.cn/wiki/LrSRwBnT8iTagRkef5xcKlDQnYe';
@@ -598,6 +599,7 @@
       renderPrototype();
       renderSpecs();
       loadNotes();
+      loadPermanentNotes();
     }
     
     // 渲染原型
@@ -644,6 +646,10 @@
                 <div class="note-label">📝 备注</div>
                 <textarea class="note-input" id="note-${m.id}" placeholder="添加备注说明..." oninput="autoSaveNote('${m.id}')"></textarea>
                 <div class="note-saved" id="saved-${m.id}">✅ 已保存</div>
+                <div class="permanent-note" id="permanent-note-${m.id}" style="margin-top:8px;display:none;">
+                  <div style="font-size:12px;color:var(--text-hint);margin-bottom:4px;">📋 永久备注:</div>
+                  <div class="permanent-note-content" style="font-size:13px;line-height:1.5;"></div>
+                </div>
               </div>
             </div>
           </div>
@@ -661,7 +667,42 @@
       content.classList.toggle('collapsed');
       toggle.classList.toggle('collapsed');
     }
-    
+
+    // 保存永久备注到HTML数据中
+    function savePermanentNoteToHtml(id, note) {
+      const dataElement = document.getElementById('permanent-notes-data');
+      let permanentNotes = {};
+      if(dataElement.textContent) {
+        permanentNotes = JSON.parse(dataElement.textContent);
+      }
+      if(!permanentNotes[currentPage]) {
+        permanentNotes[currentPage] = {};
+      }
+      permanentNotes[currentPage][id] = note;
+      dataElement.textContent = JSON.stringify(permanentNotes);
+    }
+
+    // 从HTML数据中加载永久备注
+    function loadPermanentNotes() {
+      const dataElement = document.getElementById('permanent-notes-data');
+      if(!dataElement) return;
+
+      const permanentNotes = JSON.parse(dataElement.textContent || '{}');
+      const pageNotes = permanentNotes[currentPage] || {};
+
+      Object.keys(pageNotes).forEach(id => {
+        const noteContent = pageNotes[id];
+        if(noteContent) {
+          const container = document.getElementById(`permanent-note-${id}`);
+          const contentDiv = container.querySelector('.permanent-note-content');
+          if(container && contentDiv) {
+            contentDiv.textContent = noteContent;
+            container.style.display = 'block';
+          }
+        }
+      });
+    }
+
     // 自动保存备注
     let saveTimer = null;
     function autoSaveNote(id) {
@@ -697,6 +738,32 @@
         if (textarea) {
           const key = `spec-note-${currentPage}-${m.id}`;
           localStorage.setItem(key, textarea.value);
+
+          // 同时保存到永久备注
+          if(textarea.value.trim() !== '') {
+            savePermanentNoteToHtml(m.id, textarea.value);
+            const container = document.getElementById(`permanent-note-${m.id}`);
+            const contentDiv = container.querySelector('.permanent-note-content');
+            if(container && contentDiv) {
+              contentDiv.textContent = textarea.value;
+              container.style.display = 'block';
+            }
+          } else {
+            // 如果备注为空，删除永久备注
+            const dataElement = document.getElementById('permanent-notes-data');
+            let permanentNotes = {};
+            if(dataElement.textContent) {
+              permanentNotes = JSON.parse(dataElement.textContent);
+            }
+            if(permanentNotes[currentPage] && permanentNotes[currentPage][m.id]) {
+              delete permanentNotes[currentPage][m.id];
+              dataElement.textContent = JSON.stringify(permanentNotes);
+            }
+            const container = document.getElementById(`permanent-note-${m.id}`);
+            if(container) {
+              container.style.display = 'none';
+            }
+          }
         }
       });
       showToast('💾 所有备注已保存');

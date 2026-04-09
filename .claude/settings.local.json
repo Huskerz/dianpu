@@ -21,7 +21,10 @@
       "Bash(cmd /c install.bat)",
       "Bash(dir)",
       "Bash(git reset:*)",
-      "Bash(find .:*)"
+      "Bash(find .:*)",
+      "Bash(git ls-tree:*)",
+      "Bash(ls:*)",
+      "Bash(python -m http.server 8080)"
     ]
   }
 }
